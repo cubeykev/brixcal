@@ -511,7 +511,7 @@
 
     // ✅ table_brix.json harus berada 1 folder dengan index.html
     // Kalau file ada di folder lain, ubah misal: "./data/table_brix.json"
-    const JSON_URL = "./table_brix.json";
+    const JSON_URL = new URL("table_brix.json", location.href).toString();
 
     const $ = (id) => document.getElementById(id);
 
@@ -1412,3 +1412,4 @@
   </script>
 </body>
 </html>
+
