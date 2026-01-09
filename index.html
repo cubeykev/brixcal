@@ -252,6 +252,25 @@
       cursor:pointer;
     }
 
+    /* Footer versi (kiri project, kanan versi) */
+    .app-footer{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:8px;
+    }
+    .app-footer .left{
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .app-footer .right{
+      color: var(--muted);
+      font-size: 13px;
+      text-align:right;
+      white-space:nowrap;
+    }
+
     /* Early access badge */
     .early-access{
       position:fixed;
@@ -332,7 +351,7 @@
       </div>
 
       <div class="muted" style="margin-top:8px">
-        Antrian: <b id="qcount">0</b> / <b id="qmax">10</b>
+        Local: <b id="qcount">0</b> / <b id="qmax">10</b>
         <span style="display:inline-block;margin-left:8px">• LOG System: <b id="lcount">0</b> record</span>
       </div>
 
@@ -342,7 +361,7 @@
     <!-- PREVIEW ANTRIAN -->
     <div class="card">
       <div class="queue-head">
-        <h3>Antrian (MAX 10)</h3>
+        <h3>Local System</h3>
 
         <!-- tombol Kirim di kiri tombol LOG System -->
         <div style="display:flex;gap:8px;align-items:center">
@@ -369,7 +388,11 @@
         </tfoot>
       </table>
 
-      <div class="muted" style="margin-top:8px">mpaa-project. V2.1</div>
+      <!-- FOOTER (dipisah kiri/kanan) -->
+      <div class="app-footer">
+        <div class="left">mpaa-project.</div>
+        <div class="right">V2.1</div>
+      </div>
     </div>
   </section>
 
@@ -385,11 +408,6 @@
         <button class="btn-sm warn" type="button" onclick="renderLog()">Refresh</button>
         <button class="btn-sm ok" type="button" onclick="createDraftFromSelected()">Buat Draft</button>
         <button class="btn-sm danger" type="button" onclick="clearLogSystem()">Hapus Semua LOG</button>
-      </div>
-
-      <div class="muted" style="margin-top:10px">
-        Centang nomor di LOG, lalu tekan <b>Buat Draft</b>.
-        <br />Draft <b>menumpuk</b> (draft lama tetap ada).
       </div>
 
       <div style="margin-top:10px">
@@ -448,7 +466,11 @@
         </div>
       </div>
 
-      <div class="muted" style="margin-top:8px">mpaa-project. V2.1 • LOG</div>
+      <!-- FOOTER LOG (dipisah kiri/kanan) -->
+      <div class="app-footer">
+        <div class="left">mpaa-project.</div>
+        <div class="right">V2.1 • LOG</div>
+      </div>
     </div>
   </section>
 
