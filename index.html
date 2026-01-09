@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="id">
 <head>
+  <link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#00C853">
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BrixCal</title>
@@ -1304,6 +1307,18 @@
     window.addEventListener("online",  () => updateNetAccurate());
     window.addEventListener("offline", () => updateNetAccurate());
     setInterval(updateNetAccurate, 4000);
-  </script>
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+        // console.log("SW registered");
+      } catch (e) {
+        // console.log("SW failed", e);
+      }
+    });
+  }
+</script>
 </body>
 </html>
+
