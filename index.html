@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BrixCal</title>
+  <title>Brix Calculator</title>
 
   <style>
     :root{
@@ -279,6 +279,9 @@
       opacity:.95;
       font-weight:700;
     }
+
+    /* ================== TOTAL HIDE/SHOW ================== */
+    .total-hidden{ display:none; }
   </style>
 </head>
 
@@ -290,33 +293,33 @@
   <section id="sectionMain">
     <!-- INPUT -->
     <div class="card">
-      <h3>Input</h3>
+      <h3>🧪 Data Bahan</h3>
 
       <label>RASIO</label>
       <div class="rasio-wrap">
-        <input id="rasio" inputmode="decimal" placeholder="-" readonly />
+        <input id="rasio" inputmode="decimal" readonly />
         <button id="lockBtn" class="btn-sm warn" type="button" onclick="toggleRasioLock()" aria-label="Kunci / Buka Rasio">🔒</button>
       </div>
 
       <div class="row">
         <div>
           <label>BERAT RB</label>
-          <input id="beratRB" inputmode="decimal" placeholder="-" />
+          <input id="beratRB" inputmode="decimal" />
         </div>
         <div>
           <label>BRIX AROMA</label>
-          <input id="brixA" inputmode="decimal" placeholder="-" />
+          <input id="brixA" inputmode="decimal" />
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>BERAT AROMA</label>
-          <input id="beratA" inputmode="decimal" placeholder="-" />
+          <input id="beratA" inputmode="decimal" />
         </div>
         <div>
           <label>BERAT HYDROLIZE</label>
-          <input id="beratH" inputmode="decimal" placeholder="-" />
+          <input id="beratH" inputmode="decimal" />
         </div>
       </div>
 
@@ -329,7 +332,7 @@
 
     <!-- HASIL -->
     <div class="card">
-      <h3>Hasil</h3>
+      <h3>📊 Hasil</h3>
 
       <div class="results">
         <div class="result-item"><div class="label">SS AROMA</div><div class="value" id="outSSA">-</div></div>
@@ -340,7 +343,7 @@
 
       <div class="btnbar" style="margin-top:12px">
         <button id="btnSave" class="btn-sm warn" type="button" onclick="saveLocal()">Simpan</button>
-        <button id="btnClearQueue" class="btn-sm danger" type="button" onclick="clearQueue()">Hapus Antrian</button>
+        <button id="btnClearQueue" class="btn-sm danger" type="button" onclick="clearQueue()">Hapus Local</button>
       </div>
 
       <div class="muted" style="margin-top:8px">
@@ -356,7 +359,6 @@
       <div class="queue-head">
         <h3>Local System</h3>
 
-        <!-- tombol Kirim di kiri tombol LOG System -->
         <div style="display:flex;gap:8px;align-items:center">
           <button id="btnSend" type="button" class="btn-nav ok" onclick="sendToLogSystem()">Kirim</button>
           <button type="button" class="btn-nav warn" onclick="openLogSystem()">LOG System</button>
@@ -370,8 +372,11 @@
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
-        <tfoot>
+
+        <!-- ✅ TOTAL QUEUE: tampil hanya jika data >= 2 -->
+        <tfoot id="tfootQueue" class="total-hidden">
           <tr class="total-row">
+            <td style="font-weight:800">Σ</td>
             <td id="totRB">-</td>
             <td id="totSSA">-</td>
             <td id="totSSH">-</td>
@@ -380,7 +385,6 @@
           </tr>
         </tfoot>
       </table>
-      <!-- (Footer versi dihapus karena versi sudah ada di badge Early Access) -->
     </div>
   </section>
 
@@ -405,14 +409,16 @@
               <th class="sel-col">
                 <input id="chkAllLog" class="chk" type="checkbox" title="Pilih semua" onchange="toggleSelectAllLog(this.checked)" />
               </th>
-              <th>Nomer</th><th>RB</th><th>SS A.</th><th>SS H.</th><th>Total</th><th class="act-col"></th>
+              <th>No</th><th>RB</th><th>SS A.</th><th>SS H.</th><th>Total</th><th class="act-col"></th>
             </tr>
           </thead>
           <tbody id="logTbody"></tbody>
-          <tfoot>
+
+          <!-- ✅ TOTAL LOG: tampil hanya jika data >= 2 -->
+          <tfoot id="tfootLog" class="total-hidden">
             <tr class="total-row">
-              <td class="sel-col">-</td>
-              <td>-</td>
+              <td class="sel-col"></td>
+              <td style="font-weight:800">Σ</td>
               <td id="logTotRB">-</td>
               <td id="logTotSSA">-</td>
               <td id="logTotSSH">-</td>
@@ -433,13 +439,15 @@
           <table>
             <thead>
               <tr>
-                <th>Nomer</th><th>RB</th><th>SS A.</th><th>SS H.</th><th>Total</th>
+                <th>No</th><th>RB</th><th>SS A.</th><th>SS H.</th><th>Total</th>
               </tr>
             </thead>
             <tbody id="draftTbody"></tbody>
-            <tfoot>
+
+            <!-- ✅ TOTAL DRAFT: tampil hanya jika data >= 2 -->
+            <tfoot id="tfootDraft" class="total-hidden">
               <tr class="total-row">
-                <td>-</td>
+                <td style="font-weight:800">Σ</td>
                 <td id="draftTotRB">-</td>
                 <td id="draftTotSSA">-</td>
                 <td id="draftTotSSH">-</td>
@@ -449,7 +457,6 @@
           </table>
         </div>
       </div>
-      <!-- (Footer versi dihapus karena versi sudah ada di badge Early Access) -->
     </div>
   </section>
 
@@ -496,6 +503,14 @@
     const API_BASE = "https://script.google.com/macros/s/AKfycbzwOldU-U_sq5r-g_yCSwl5OaZxCk_GGu11cc15s0jSSFAQYTcc8474bApYfhC690dPcQ/exec";
 
     const $ = (id) => document.getElementById(id);
+
+    /* ================== TOTAL (SHOW IF >= 2) ================== */
+    const TOTAL_MIN_ROWS = 2; // ✅ ubah ini kalau mau 3, 4, dst
+    function toggleTfootByCount(tfootId, count){
+      const tf = document.getElementById(tfootId);
+      if(!tf) return;
+      tf.classList.toggle("total-hidden", !(count >= TOTAL_MIN_ROWS));
+    }
 
     /* ================== JSONP API ================== */
     function jsonp(url){
@@ -852,6 +867,9 @@
         const all = $("chkAllLog");
         if(all){ all.checked=false; all.indeterminate=false; }
         updateLogCountUI();
+
+        // ✅ hide total jika < 2
+        toggleTfootByCount("tfootLog", 0);
         return;
       }
 
@@ -880,6 +898,9 @@
       const all = $("chkAllLog");
       if(all){ all.checked=false; all.indeterminate=false; }
       updateLogCountUI();
+
+      // ✅ tampilkan total jika >= 2
+      toggleTfootByCount("tfootLog", log.length);
     }
 
     async function deleteLogRow(idx){
@@ -928,9 +949,12 @@
       if(!wrap || !tb) return;
 
       const rows = normalizeRows(getDraftRaw());
+
       if(!rows.length){
         wrap.classList.add("hidden");
         tb.innerHTML = "";
+        // ✅ hide total jika < 2
+        toggleTfootByCount("tfootDraft", 0);
         return;
       }
 
@@ -954,6 +978,9 @@
       $("draftTotSSA").textContent = rows.length ? fmt(t.ssa, 1) : "-";
       $("draftTotSSH").textContent = rows.length ? fmt(t.ssh, 1) : "-";
       $("draftTotTSS").textContent = rows.length ? fmt(t.tss, 1) : "-";
+
+      // ✅ tampilkan total jika >= 2
+      toggleTfootByCount("tfootDraft", rows.length);
     }
 
     async function clearDraft(){
@@ -1242,7 +1269,7 @@
 
     async function clearQueue(){
       if(_busy) return;
-      const ok = await modalConfirm("Hapus semua antrian lokal?", "Hapus Antrian");
+      const ok = await modalConfirm("Hapus semua lokal?", "Hapus Local");
       if(ok) setQueue([]);
     }
 
@@ -1278,6 +1305,9 @@
 
       applySendAvailability();
       updateLogCountUI();
+
+      // ✅ tampilkan total jika >= 2
+      toggleTfootByCount("tfootQueue", q.length);
     }
 
     /* ================== ONLINE/OFFLINE ================== */
@@ -1328,4 +1358,3 @@
   </script>
 </body>
 </html>
-
