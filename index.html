@@ -252,26 +252,7 @@
       cursor:pointer;
     }
 
-    /* Footer versi (kiri project, kanan versi) */
-    .app-footer{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-top:8px;
-    }
-    .app-footer .left{
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .app-footer .right{
-      color: var(--muted);
-      font-size: 13px;
-      text-align:right;
-      white-space:nowrap;
-    }
-
-    /* Early access badge */
+    /* Early access badge (GABUNG VERSION) */
     .early-access{
       position:fixed;
       right:10px;
@@ -285,6 +266,18 @@
       letter-spacing:.2px;
       user-select:none;
       pointer-events:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .early-access .dot{
+      width:6px;height:6px;border-radius:999px;
+      background:#fff;
+      opacity:.85;
+    }
+    .early-access .ver{
+      opacity:.95;
+      font-weight:700;
     }
   </style>
 </head>
@@ -387,12 +380,7 @@
           </tr>
         </tfoot>
       </table>
-
-      <!-- FOOTER (dipisah kiri/kanan) -->
-      <div class="app-footer">
-        <div class="left">mpaa-project.</div>
-        <div class="right">V2.1</div>
-      </div>
+      <!-- (Footer versi dihapus karena versi sudah ada di badge Early Access) -->
     </div>
   </section>
 
@@ -437,12 +425,8 @@
 
       <div id="draftWrap" class="hidden" style="margin-top:14px">
         <div class="queue-head" style="margin-top:6px">
-          <h3 style="font-size:16px">Draft Terpilih</h3>
+          <h3 style="font-size:16px">Draft</h3>
           <button type="button" class="btn-nav danger" onclick="clearDraft()">Hapus Draft</button>
-        </div>
-
-        <div class="muted" style="margin-top:8px">
-          Ini draft gabungan (menumpuk).
         </div>
 
         <div style="margin-top:10px">
@@ -465,12 +449,7 @@
           </table>
         </div>
       </div>
-
-      <!-- FOOTER LOG (dipisah kiri/kanan) -->
-      <div class="app-footer">
-        <div class="left">mpaa-project.</div>
-        <div class="right">V2.1 • LOG</div>
-      </div>
+      <!-- (Footer versi dihapus karena versi sudah ada di badge Early Access) -->
     </div>
   </section>
 
@@ -497,8 +476,12 @@
     </div>
   </div>
 
-  <!-- EARLY ACCESS -->
-  <div class="early-access">Early Access</div>
+  <!-- EARLY ACCESS (GABUNG VERSI) -->
+  <div class="early-access">
+    <span>Early Access</span>
+    <span class="dot"></span>
+    <span class="ver">V2.1</span>
+  </div>
 
   <script>
     /* ================== KONFIG ================== */
@@ -1024,6 +1007,7 @@
 
       const q = getQueue();
       btn.disabled = !q.length;
+      btn.textetsent = "Kirim";
       btn.textContent = "Kirim";
     }
 
@@ -1162,40 +1146,34 @@
           return;
         }
 
-        // D8 = TRUNC(solA * C7/100; 1)
         let d8 = NaN;
         const solA = lookupSolidoExact(table, c8);
         if(!Number.isNaN(solA) && !Number.isNaN(c7)){
           d8 = truncTo(solA * c7 / 100, 1);
         }
 
-        // D5 = TRUNC((C6/0.85/C5 - D8)/C9*100; 2)
         let d5 = NaN;
         if(!Number.isNaN(c6) && !Number.isNaN(c5) && !Number.isNaN(c9) && !Number.isNaN(d8) && c5 !== 0 && c9 !== 0){
           d5 = truncTo(((c6 / 0.85 / c5 - d8) / c9) * 100, 2);
         }
 
-        // D6 approx = VLOOKUP(D5; B:B; 1; TRUE) -> solido approx
         let d6 = NaN;
         if(!Number.isNaN(d5)){
           const rowBySol = vlookupApproxRowBySolido(table, d5);
           if(rowBySol) d6 = rowBySol[1];
         }
 
-        // C10 = brix dari solido exact (MATCH)
         let c10 = NaN;
         if(!Number.isNaN(d6)){
           const rowExact = table.find(r => r[1] === d6);
           if(rowExact) c10 = rowExact[0];
         }
 
-        // D10 = TRUNC(D6*C9/100;1)
         let d10 = NaN;
         if(!Number.isNaN(d6) && !Number.isNaN(c9)){
           d10 = truncTo(d6 * c9 / 100, 1);
         }
 
-        // D11 = TRUNC(D8+D10;1) (pakai x10 biar aman)
         let d11 = NaN;
         if(!Number.isNaN(d8) && !Number.isNaN(d10)){
           const a10 = Math.round(d8 * 10);
@@ -1242,9 +1220,7 @@
       q.push([cur.c6, cur.d8, cur.d10, cur.d11]);
       setQueue(q);
 
-      // Popup berhasil tersimpan
       await modalAlert("✅ Berhasil tersimpan.\n\nAntrian: " + q.length + "/" + MAX_QUEUE, "Simpan");
-
       showSyncStatus("✅ Tersimpan (" + q.length + "/" + MAX_QUEUE + ")");
       hideSyncStatusLater(1400);
     }
