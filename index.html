@@ -252,7 +252,7 @@
       cursor:pointer;
     }
 
-    /* Early access badge (GABUNG VERSION) */
+    /* Early access badge */
     .early-access{
       position:fixed;
       right:10px;
@@ -280,7 +280,7 @@
       font-weight:700;
     }
 
-    /* ================== TOTAL HIDE/SHOW ================== */
+    /* Total show/hide */
     .total-hidden{ display:none; }
   </style>
 </head>
@@ -288,6 +288,7 @@
 <body>
   <h2>Calculator BRIX</h2>
   <div id="net" class="pill offline">OFFLINE</div>
+  <div class="muted" id="tableVer" style="margin-top:6px">TABLE_BRIX: -</div>
 
   <!-- ================= MAIN ================= -->
   <section id="sectionMain">
@@ -327,6 +328,9 @@
         <button id="btnCalc" class="btn-sm ok" type="button" onclick="calc()">Hitung</button>
         <button id="btnRefreshTable" class="btn-sm warn" type="button" onclick="refreshTable()">Offline Mode</button>
         <button id="btnClearInputs" class="btn-sm danger" type="button" onclick="clearInputs()">Hapus Input</button>
+      </div>
+      <div class="muted" style="margin-top:8px">
+        Catatan: input boleh pakai <b>titik</b> atau <b>koma</b> (contoh: 1.5 / 1,5).
       </div>
     </div>
 
@@ -373,7 +377,6 @@
         </thead>
         <tbody id="tbody"></tbody>
 
-        <!-- ✅ TOTAL QUEUE: tampil hanya jika data >= 2 -->
         <tfoot id="tfootQueue" class="total-hidden">
           <tr class="total-row">
             <td style="font-weight:800">Σ</td>
@@ -414,7 +417,6 @@
           </thead>
           <tbody id="logTbody"></tbody>
 
-          <!-- ✅ TOTAL LOG: tampil hanya jika data >= 2 -->
           <tfoot id="tfootLog" class="total-hidden">
             <tr class="total-row">
               <td class="sel-col"></td>
@@ -444,7 +446,6 @@
             </thead>
             <tbody id="draftTbody"></tbody>
 
-            <!-- ✅ TOTAL DRAFT: tampil hanya jika data >= 2 -->
             <tfoot id="tfootDraft" class="total-hidden">
               <tr class="total-row">
                 <td style="font-weight:800">Σ</td>
@@ -483,7 +484,7 @@
     </div>
   </div>
 
-  <!-- EARLY ACCESS (GABUNG VERSI) -->
+  <!-- EARLY ACCESS -->
   <div class="early-access">
     <span>Early Access</span>
     <span class="dot"></span>
@@ -491,70 +492,35 @@
   </div>
 
   <script>
+    /* =========================================================
+       ✅ INDEX GITHUB PAGES (TANPA APPS SCRIPT / JSONP)
+       - Ambil TABLE_BRIX dari file: table_brix.json (repo kamu)
+       - Cache ke localStorage biar tetap bisa offline
+       - Input boleh titik atau koma
+       - Semua fitur queue/log/draft tetap ada
+    ========================================================== */
+
     /* ================== KONFIG ================== */
     const KEY            = "brix_queue_v2";
-    const TABLE_KEY      = "table_brix_cache_v1";
+    const TABLE_KEY      = "table_brix_cache_v2"; // cache baru (wrapper version+rows)
     const RASIO_KEY      = "brix_rasio_c5_v1";
     const RASIO_LOCK_KEY = "brix_rasio_lock_v1";
     const LOG_KEY        = "brix_logsystem_v1";
     const DRAFT_KEY      = "brix_logdraft_v1";
     const MAX_QUEUE      = 10;
 
-    const API_BASE = "https://script.google.com/macros/s/AKfycbzwOldU-U_sq5r-g_yCSwl5OaZxCk_GGu11cc15s0jSSFAQYTcc8474bApYfhC690dPcQ/exec";
+    // ✅ table_brix.json harus berada 1 folder dengan index.html
+    // Kalau file ada di folder lain, ubah misal: "./data/table_brix.json"
+    const JSON_URL = "./table_brix.json";
 
     const $ = (id) => document.getElementById(id);
 
     /* ================== TOTAL (SHOW IF >= 2) ================== */
-    const TOTAL_MIN_ROWS = 2; // ✅ ubah ini kalau mau 3, 4, dst
+    const TOTAL_MIN_ROWS = 2;
     function toggleTfootByCount(tfootId, count){
       const tf = document.getElementById(tfootId);
       if(!tf) return;
       tf.classList.toggle("total-hidden", !(count >= TOTAL_MIN_ROWS));
-    }
-
-    /* ================== JSONP API ================== */
-    function jsonp(url){
-      return new Promise((resolve, reject) => {
-        const cbName = "cb_" + Math.random().toString(36).slice(2);
-        const s = document.createElement("script");
-
-        window[cbName] = (data) => {
-          try { resolve(data); }
-          finally { delete window[cbName]; s.remove(); }
-        };
-
-        s.onerror = () => {
-          delete window[cbName];
-          s.remove();
-          reject(new Error("JSONP error / offline"));
-        };
-
-        const sep = url.includes("?") ? "&" : "?";
-        s.src = url + sep + "callback=" + cbName + "&_=" + Date.now();
-        document.head.appendChild(s);
-      });
-    }
-
-    async function apiGet(action, params = {}){
-      const qs = new URLSearchParams({ action, ...params }).toString();
-      const url = API_BASE + (API_BASE.includes("?") ? "&" : "?") + qs;
-      const res = await jsonp(url);
-      if(!res || res.ok !== true) throw new Error(res && res.error ? res.error : "API error");
-      return res;
-    }
-
-    /* ================== NAV ================== */
-    function openLogSystem(){
-      $("sectionMain").classList.add("hidden");
-      $("sectionLog").classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      renderLog();
-      renderDraft();
-    }
-    function backToMain(){
-      $("sectionLog").classList.add("hidden");
-      $("sectionMain").classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     /* ================== MODAL ================== */
@@ -650,6 +616,20 @@
       window._syncToastTimer = window.setTimeout(()=>{ el.style.display="none"; }, ms);
     }
 
+    /* ================== NAV ================== */
+    function openLogSystem(){
+      $("sectionMain").classList.add("hidden");
+      $("sectionLog").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderLog();
+      renderDraft();
+    }
+    function backToMain(){
+      $("sectionLog").classList.add("hidden");
+      $("sectionMain").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     /* ================== RASIO LOCK ================== */
     function applyRasioUI(isLocked){
       const input = $("rasio");
@@ -675,6 +655,7 @@
     function loadRasioOnStart(){
       const saved = localStorage.getItem(RASIO_KEY);
       if(saved != null) $("rasio").value = saved;
+      if(!$("rasio").value) $("rasio").value = "1"; // default aman kalau kosong
 
       const isLocked = (localStorage.getItem(RASIO_LOCK_KEY) !== "0");
       applyRasioUI(isLocked);
@@ -701,7 +682,12 @@
     }
 
     /* ================== UTIL NUM ================== */
-    function parseNum(v){ return Number(String(v ?? "").trim().replace(",", ".")); }
+    // ✅ input bisa titik atau koma
+    function parseNum(v){
+      const s = String(v ?? "").trim();
+      if(!s) return NaN;
+      return Number(s.replace(",", "."));
+    }
 
     function truncTo(n, digits){
       if (Number.isNaN(n)) return NaN;
@@ -709,6 +695,7 @@
       return (n < 0 ? Math.ceil(n * p) : Math.floor(n * p)) / p;
     }
 
+    // ✅ tampil tetap pakai koma biar nyaman
     function fmt(n, d=1){
       if (n == null || Number.isNaN(n)) return "-";
       return n.toFixed(d).replace(".", ",");
@@ -867,8 +854,6 @@
         const all = $("chkAllLog");
         if(all){ all.checked=false; all.indeterminate=false; }
         updateLogCountUI();
-
-        // ✅ hide total jika < 2
         toggleTfootByCount("tfootLog", 0);
         return;
       }
@@ -899,7 +884,6 @@
       if(all){ all.checked=false; all.indeterminate=false; }
       updateLogCountUI();
 
-      // ✅ tampilkan total jika >= 2
       toggleTfootByCount("tfootLog", log.length);
     }
 
@@ -953,7 +937,6 @@
       if(!rows.length){
         wrap.classList.add("hidden");
         tb.innerHTML = "";
-        // ✅ hide total jika < 2
         toggleTfootByCount("tfootDraft", 0);
         return;
       }
@@ -979,7 +962,6 @@
       $("draftTotSSH").textContent = rows.length ? fmt(t.ssh, 1) : "-";
       $("draftTotTSS").textContent = rows.length ? fmt(t.tss, 1) : "-";
 
-      // ✅ tampilkan total jika >= 2
       toggleTfootByCount("tfootDraft", rows.length);
     }
 
@@ -1071,7 +1053,114 @@
       }
     }
 
-    /* ================== TABLE LOOKUP ================== */
+    /* ================== TABLE (JSON) ================== */
+    function normalizeJsonTable(data){
+      // support:
+      // {version:"...", rows:[[brix,solido],...]} ✅ format kamu
+      // [[brix,solido],...]
+      // [{brix:1, solido:0.9}, ...]
+      const raw = (data && typeof data === "object" && Array.isArray(data.rows))
+        ? data.rows
+        : data;
+
+      if(!raw || !Array.isArray(raw)) return [];
+
+      const out = [];
+      for(const row of raw){
+        if(Array.isArray(row) && row.length >= 2){
+          const b = Number(row[0]);
+          const s = Number(row[1]);
+          if(!Number.isNaN(b) && !Number.isNaN(s)) out.push([b, s]);
+        } else if(row && typeof row === "object"){
+          const b = Number(row.brix);
+          const s = Number(row.solido);
+          if(!Number.isNaN(b) && !Number.isNaN(s)) out.push([b, s]);
+        }
+      }
+      out.sort((a,b)=>a[0]-b[0]);
+      return out;
+    }
+
+    function getCachedTable(){
+      try{
+        const cached = localStorage.getItem(TABLE_KEY);
+        if(!cached) return null;
+
+        const obj = JSON.parse(cached);
+
+        // cache lama: langsung array
+        if(Array.isArray(obj) && obj.length){
+          $("tableVer").textContent = "TABLE_BRIX: cache";
+          return obj;
+        }
+
+        // cache baru: {version, rows}
+        if(obj && Array.isArray(obj.rows) && obj.rows.length){
+          $("tableVer").textContent = "TABLE_BRIX: " + (obj.version || "cache");
+          return obj.rows;
+        }
+        return null;
+      }catch(e){
+        return null;
+      }
+    }
+
+    async function fetchJsonWithTimeout(url, ms=4500){
+      const controller = new AbortController();
+      const timer = setTimeout(()=>controller.abort(), ms);
+      try{
+        const res = await fetch(url, { cache:"no-store", signal: controller.signal });
+        if(!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function ensureTableLoaded(){
+      const cached = getCachedTable();
+      if(cached) return cached;
+
+      if(!navigator.onLine) return null;
+
+      const json = await fetchJsonWithTimeout(JSON_URL, 4500);
+      const rows = normalizeJsonTable(json);
+      if(!rows.length) throw new Error("TABLE_BRIX JSON kosong / format salah");
+
+      localStorage.setItem(TABLE_KEY, JSON.stringify({ version: (json && json.version) ? json.version : "", rows }));
+      $("tableVer").textContent = "TABLE_BRIX: " + ((json && json.version) ? json.version : "OK");
+      return rows;
+    }
+
+    async function refreshTable(){
+      if(_busy) return;
+
+      if(!navigator.onLine){
+        showSyncStatus("⚠️ Offline. Nyalakan internet untuk update TABLE_BRIX.");
+        hideSyncStatusLater(2200);
+        return;
+      }
+
+      startBusy("Update TABLE_BRIX...");
+      try{
+        const json = await fetchJsonWithTimeout(JSON_URL, 7000);
+        const rows = normalizeJsonTable(json);
+        if(!rows.length) throw new Error("TABLE_BRIX JSON kosong / format salah");
+
+        localStorage.setItem(TABLE_KEY, JSON.stringify({ version: (json && json.version) ? json.version : "", rows }));
+        $("tableVer").textContent = "TABLE_BRIX: " + ((json && json.version) ? json.version : "OK");
+
+        showSyncStatus("✅ TABLE_BRIX ter-update: " + rows.length + " baris");
+        hideSyncStatusLater(1800);
+      }catch(err){
+        showSyncStatus("❌ Gagal update TABLE_BRIX: " + (err && err.message ? err.message : err));
+        hideSyncStatusLater(2600);
+      }finally{
+        endBusy();
+      }
+    }
+
+    /* ================== LOOKUP ================== */
     function lookupSolidoExact(table, brix){
       if(!table || !table.length || Number.isNaN(brix)) return NaN;
       for(const [bx, sol] of table){
@@ -1090,42 +1179,6 @@
         else break;
       }
       return bestRow;
-    }
-
-    async function ensureTableLoaded(){
-      const cached = localStorage.getItem(TABLE_KEY);
-      if(cached) return JSON.parse(cached);
-
-      if(!navigator.onLine) return null;
-
-      const res = await apiGet("getTableBrix");
-      const rows = res.rows || [];
-      localStorage.setItem(TABLE_KEY, JSON.stringify(rows));
-      return rows;
-    }
-
-    function refreshTable(){
-      if(_busy) return;
-
-      if(!navigator.onLine){
-        showSyncStatus("⚠️ Offline. Nyalakan internet untuk update TABLE_BRIX.");
-        hideSyncStatusLater(2200);
-        return;
-      }
-
-      startBusy("Update TABLE_BRIX...");
-      apiGet("getTableBrix")
-        .then(res => {
-          const rows = res.rows || [];
-          localStorage.setItem(TABLE_KEY, JSON.stringify(rows));
-          showSyncStatus("✅ TABLE_BRIX ter-update: " + rows.length + " baris");
-          hideSyncStatusLater(1800);
-        })
-        .catch(err => {
-          showSyncStatus("❌ Gagal update TABLE_BRIX: " + (err.message || err));
-          hideSyncStatusLater(2600);
-        })
-        .finally(() => endBusy());
     }
 
     /* ================== CLEAR INPUT ================== */
@@ -1306,7 +1359,6 @@
       applySendAvailability();
       updateLogCountUI();
 
-      // ✅ tampilkan total jika >= 2
       toggleTfootByCount("tfootQueue", q.length);
     }
 
@@ -1314,8 +1366,8 @@
     async function checkInternet(){
       if(!navigator.onLine) return false;
       try{
-        const baseUrl = location.href.split("#")[0];
-        const url = (baseUrl.includes("?") ? (baseUrl + "&") : (baseUrl + "?")) + "ping=1&_=" + Date.now();
+        // ping ringan ke file json sendiri
+        const url = JSON_URL + (JSON_URL.includes("?") ? "&" : "?") + "_=" + Date.now();
         const controller = new AbortController();
         setTimeout(()=>controller.abort(), 1500);
         const res = await fetch(url, { method:"GET", cache:"no-store", signal: controller.signal });
@@ -1347,10 +1399,12 @@
     renderLog();
     renderDraft();
     loadRasioOnStart();
-
     updateLogCountUI();
     applySendAvailability();
     updateNetAccurate();
+
+    // coba tampilkan versi dari cache kalau ada
+    getCachedTable();
 
     window.addEventListener("online",  () => updateNetAccurate());
     window.addEventListener("offline", () => updateNetAccurate());
@@ -1358,4 +1412,3 @@
   </script>
 </body>
 </html>
-
