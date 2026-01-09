@@ -107,7 +107,6 @@
       border-bottom:none;
     }
 
-    /* Rasio Lock UI */
     .rasio-wrap{ display:flex; gap:8px; align-items:center; }
     .rasio-wrap input{ flex:1 1 auto; }
 
@@ -130,7 +129,6 @@
       .btnbar .btn-sm{ flex:1 1 calc(50% - 8px); }
     }
 
-    /* Delete icon */
     .act-col{ width:36px; text-align:right; }
     .icon-btn{
       width:28px;height:28px;
@@ -149,7 +147,6 @@
     .icon-btn:hover{ background:#fafafa; }
     .icon-btn.dangerish{ border-color:#ffd6d6; }
 
-    /* Loading overlay */
     #loading{
       display:none;
       opacity:0;
@@ -172,7 +169,6 @@
       100%{ transform: translateX(-70%); }
     }
 
-    /* Modal */
     #modal{
       position:fixed; inset:0;
       background:rgba(0,0,0,.35);
@@ -224,7 +220,6 @@
     .m-primary{ background:var(--ok); color:#fff; }
     .m-danger{ background:var(--danger); color:#fff; }
 
-    /* Nav */
     .queue-head{
       display:flex;
       align-items:center;
@@ -244,7 +239,6 @@
       white-space:nowrap;
     }
 
-    /* checkbox column */
     .sel-col{ width:40px; text-align:center; }
     .chk{
       width:18px;height:18px;
@@ -252,7 +246,6 @@
       cursor:pointer;
     }
 
-    /* Early access badge */
     .early-access{
       position:fixed;
       right:10px;
@@ -280,7 +273,6 @@
       font-weight:700;
     }
 
-    /* Total show/hide */
     .total-hidden{ display:none; }
   </style>
 </head>
@@ -288,11 +280,8 @@
 <body>
   <h2>Calculator BRIX</h2>
   <div id="net" class="pill offline">OFFLINE</div>
-  <div class="muted" id="tableVer" style="margin-top:6px">TABLE_BRIX: -</div>
 
-  <!-- ================= MAIN ================= -->
   <section id="sectionMain">
-    <!-- INPUT -->
     <div class="card">
       <h3>🧪 Data Bahan</h3>
 
@@ -329,12 +318,8 @@
         <button id="btnRefreshTable" class="btn-sm warn" type="button" onclick="refreshTable()">Offline Mode</button>
         <button id="btnClearInputs" class="btn-sm danger" type="button" onclick="clearInputs()">Hapus Input</button>
       </div>
-      <div class="muted" style="margin-top:8px">
-        Catatan: input boleh pakai <b>titik</b> atau <b>koma</b> (contoh: 1.5 / 1,5).
-      </div>
     </div>
 
-    <!-- HASIL -->
     <div class="card">
       <h3>📊 Hasil</h3>
 
@@ -358,7 +343,6 @@
       <div id="syncStatus" class="muted" style="display:none;margin-top:10px;padding:10px;border:1px solid var(--bd2);border-radius:12px"></div>
     </div>
 
-    <!-- PREVIEW ANTRIAN -->
     <div class="card">
       <div class="queue-head">
         <h3>Local System</h3>
@@ -391,7 +375,6 @@
     </div>
   </section>
 
-  <!-- ================= LOG SYSTEM ================= -->
   <section id="sectionLog" class="hidden">
     <div class="card">
       <div class="queue-head">
@@ -461,7 +444,6 @@
     </div>
   </section>
 
-  <!-- LOADING OVERLAY -->
   <div id="loading" aria-hidden="true">
     <div style="background:#fff;padding:16px;border-radius:14px;width:85%;border:1px solid var(--bd2)">
       <div id="loadingText" style="font-weight:700">Memproses...</div>
@@ -472,7 +454,6 @@
     </div>
   </div>
 
-  <!-- MODAL -->
   <div id="modal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true">
       <div class="modal-head" id="modalTitle">Info</div>
@@ -484,7 +465,6 @@
     </div>
   </div>
 
-  <!-- EARLY ACCESS -->
   <div class="early-access">
     <span>Early Access</span>
     <span class="dot"></span>
@@ -492,26 +472,17 @@
   </div>
 
   <script>
-    /* =========================================================
-       ✅ INDEX GITHUB PAGES (TANPA APPS SCRIPT / JSONP)
-       - Ambil TABLE_BRIX dari file: table_brix.json (repo kamu)
-       - Cache ke localStorage biar tetap bisa offline
-       - Input boleh titik atau koma
-       - Semua fitur queue/log/draft tetap ada
-    ========================================================== */
-
     /* ================== KONFIG ================== */
     const KEY            = "brix_queue_v2";
-    const TABLE_KEY      = "table_brix_cache_v2"; // cache baru (wrapper version+rows)
+    const TABLE_KEY      = "table_brix_cache_v1";
     const RASIO_KEY      = "brix_rasio_c5_v1";
     const RASIO_LOCK_KEY = "brix_rasio_lock_v1";
     const LOG_KEY        = "brix_logsystem_v1";
     const DRAFT_KEY      = "brix_logdraft_v1";
     const MAX_QUEUE      = 10;
 
-    // ✅ table_brix.json harus berada 1 folder dengan index.html
-    // Kalau file ada di folder lain, ubah misal: "./data/table_brix.json"
-    const JSON_URL = new URL("table_brix.json", location.href).toString();
+    // ✅ sumber data TABLE_BRIX di GitHub Pages
+    const TABLE_URL = "./table_brix.json";
 
     const $ = (id) => document.getElementById(id);
 
@@ -655,7 +626,6 @@
     function loadRasioOnStart(){
       const saved = localStorage.getItem(RASIO_KEY);
       if(saved != null) $("rasio").value = saved;
-      if(!$("rasio").value) $("rasio").value = "1"; // default aman kalau kosong
 
       const isLocked = (localStorage.getItem(RASIO_LOCK_KEY) !== "0");
       applyRasioUI(isLocked);
@@ -682,11 +652,9 @@
     }
 
     /* ================== UTIL NUM ================== */
-    // ✅ input bisa titik atau koma
+    // ✅ input boleh "1.2" atau "1,2"
     function parseNum(v){
-      const s = String(v ?? "").trim();
-      if(!s) return NaN;
-      return Number(s.replace(",", "."));
+      return Number(String(v ?? "").trim().replace(",", "."));
     }
 
     function truncTo(n, digits){
@@ -695,10 +663,10 @@
       return (n < 0 ? Math.ceil(n * p) : Math.floor(n * p)) / p;
     }
 
-    // ✅ tampil tetap pakai koma biar nyaman
+    // ✅ OUTPUT pakai titik (.)
     function fmt(n, d=1){
       if (n == null || Number.isNaN(n)) return "-";
-      return n.toFixed(d).replace(".", ",");
+      return n.toFixed(d);
     }
 
     function fmtInt(n){
@@ -883,7 +851,6 @@
       const all = $("chkAllLog");
       if(all){ all.checked=false; all.indeterminate=false; }
       updateLogCountUI();
-
       toggleTfootByCount("tfootLog", log.length);
     }
 
@@ -1053,114 +1020,7 @@
       }
     }
 
-    /* ================== TABLE (JSON) ================== */
-    function normalizeJsonTable(data){
-      // support:
-      // {version:"...", rows:[[brix,solido],...]} ✅ format kamu
-      // [[brix,solido],...]
-      // [{brix:1, solido:0.9}, ...]
-      const raw = (data && typeof data === "object" && Array.isArray(data.rows))
-        ? data.rows
-        : data;
-
-      if(!raw || !Array.isArray(raw)) return [];
-
-      const out = [];
-      for(const row of raw){
-        if(Array.isArray(row) && row.length >= 2){
-          const b = Number(row[0]);
-          const s = Number(row[1]);
-          if(!Number.isNaN(b) && !Number.isNaN(s)) out.push([b, s]);
-        } else if(row && typeof row === "object"){
-          const b = Number(row.brix);
-          const s = Number(row.solido);
-          if(!Number.isNaN(b) && !Number.isNaN(s)) out.push([b, s]);
-        }
-      }
-      out.sort((a,b)=>a[0]-b[0]);
-      return out;
-    }
-
-    function getCachedTable(){
-      try{
-        const cached = localStorage.getItem(TABLE_KEY);
-        if(!cached) return null;
-
-        const obj = JSON.parse(cached);
-
-        // cache lama: langsung array
-        if(Array.isArray(obj) && obj.length){
-          $("tableVer").textContent = "TABLE_BRIX: cache";
-          return obj;
-        }
-
-        // cache baru: {version, rows}
-        if(obj && Array.isArray(obj.rows) && obj.rows.length){
-          $("tableVer").textContent = "TABLE_BRIX: " + (obj.version || "cache");
-          return obj.rows;
-        }
-        return null;
-      }catch(e){
-        return null;
-      }
-    }
-
-    async function fetchJsonWithTimeout(url, ms=4500){
-      const controller = new AbortController();
-      const timer = setTimeout(()=>controller.abort(), ms);
-      try{
-        const res = await fetch(url, { cache:"no-store", signal: controller.signal });
-        if(!res.ok) throw new Error("HTTP " + res.status);
-        return await res.json();
-      } finally {
-        clearTimeout(timer);
-      }
-    }
-
-    async function ensureTableLoaded(){
-      const cached = getCachedTable();
-      if(cached) return cached;
-
-      if(!navigator.onLine) return null;
-
-      const json = await fetchJsonWithTimeout(JSON_URL, 4500);
-      const rows = normalizeJsonTable(json);
-      if(!rows.length) throw new Error("TABLE_BRIX JSON kosong / format salah");
-
-      localStorage.setItem(TABLE_KEY, JSON.stringify({ version: (json && json.version) ? json.version : "", rows }));
-      $("tableVer").textContent = "TABLE_BRIX: " + ((json && json.version) ? json.version : "OK");
-      return rows;
-    }
-
-    async function refreshTable(){
-      if(_busy) return;
-
-      if(!navigator.onLine){
-        showSyncStatus("⚠️ Offline. Nyalakan internet untuk update TABLE_BRIX.");
-        hideSyncStatusLater(2200);
-        return;
-      }
-
-      startBusy("Update TABLE_BRIX...");
-      try{
-        const json = await fetchJsonWithTimeout(JSON_URL, 7000);
-        const rows = normalizeJsonTable(json);
-        if(!rows.length) throw new Error("TABLE_BRIX JSON kosong / format salah");
-
-        localStorage.setItem(TABLE_KEY, JSON.stringify({ version: (json && json.version) ? json.version : "", rows }));
-        $("tableVer").textContent = "TABLE_BRIX: " + ((json && json.version) ? json.version : "OK");
-
-        showSyncStatus("✅ TABLE_BRIX ter-update: " + rows.length + " baris");
-        hideSyncStatusLater(1800);
-      }catch(err){
-        showSyncStatus("❌ Gagal update TABLE_BRIX: " + (err && err.message ? err.message : err));
-        hideSyncStatusLater(2600);
-      }finally{
-        endBusy();
-      }
-    }
-
-    /* ================== LOOKUP ================== */
+    /* ================== TABLE LOOKUP ================== */
     function lookupSolidoExact(table, brix){
       if(!table || !table.length || Number.isNaN(brix)) return NaN;
       for(const [bx, sol] of table){
@@ -1179,6 +1039,46 @@
         else break;
       }
       return bestRow;
+    }
+
+    // ✅ ambil table dari localStorage dulu, kalau tidak ada -> fetch table_brix.json
+    async function ensureTableLoaded(){
+      const cached = localStorage.getItem(TABLE_KEY);
+      if(cached){
+        try { return JSON.parse(cached); } catch(e){}
+      }
+
+      // fetch dari file json di repo
+      const res = await fetch(TABLE_URL + "?_=" + Date.now(), { cache: "no-store" });
+      if(!res.ok) return null;
+
+      const json = await res.json();
+      const rows = (json && Array.isArray(json.rows)) ? json.rows : null;
+      if(!rows) return null;
+
+      localStorage.setItem(TABLE_KEY, JSON.stringify(rows));
+      return rows;
+    }
+
+    // ✅ tombol "Offline Mode": paksa reload table json, simpan ke cache
+    function refreshTable(){
+      if(_busy) return;
+
+      startBusy("Update TABLE_BRIX...");
+      fetch(TABLE_URL + "?_=" + Date.now(), { cache:"no-store" })
+        .then(r => r.ok ? r.json() : Promise.reject(new Error("Gagal fetch table_brix.json")))
+        .then(json => {
+          const rows = (json && Array.isArray(json.rows)) ? json.rows : null;
+          if(!rows) throw new Error("Format JSON salah: harus ada { rows: [...] }");
+          localStorage.setItem(TABLE_KEY, JSON.stringify(rows));
+          showSyncStatus("✅ TABLE_BRIX ter-update: " + rows.length + " baris");
+          hideSyncStatusLater(1800);
+        })
+        .catch(err => {
+          showSyncStatus("❌ Gagal update TABLE_BRIX: " + (err.message || err));
+          hideSyncStatusLater(2600);
+        })
+        .finally(() => endBusy());
     }
 
     /* ================== CLEAR INPUT ================== */
@@ -1221,7 +1121,7 @@
 
         const table = await ensureTableLoaded();
         if(!table){
-          await modalAlert("TABLE_BRIX belum ada di cache.\nOnline 1x lalu tekan 'Offline Mode'.", "TABLE_BRIX");
+          await modalAlert("TABLE_BRIX tidak bisa dibaca.\nPastikan file table_brix.json ada dan formatnya benar.", "TABLE_BRIX");
           return;
         }
 
@@ -1358,19 +1258,16 @@
 
       applySendAvailability();
       updateLogCountUI();
-
       toggleTfootByCount("tfootQueue", q.length);
     }
 
-    /* ================== ONLINE/OFFLINE ================== */
-    async function checkInternet(){
+    /* ================== ONLINE/OFFLINE (AKURAT) ================== */
+    async function checkInternetAccurate(){
       if(!navigator.onLine) return false;
       try{
-        // ping ringan ke file json sendiri
-        const url = JSON_URL + (JSON_URL.includes("?") ? "&" : "?") + "_=" + Date.now();
         const controller = new AbortController();
         setTimeout(()=>controller.abort(), 1500);
-        const res = await fetch(url, { method:"GET", cache:"no-store", signal: controller.signal });
+        const res = await fetch(TABLE_URL + "?ping=" + Date.now(), { cache:"no-store", signal: controller.signal });
         return res.ok;
       } catch(e){
         return false;
@@ -1381,7 +1278,7 @@
       const el = $("net");
       if(!el) return;
 
-      const ok = await checkInternet();
+      const ok = await checkInternetAccurate();
       if(ok){
         el.textContent = "ONLINE";
         el.className = "pill online";
@@ -1399,12 +1296,10 @@
     renderLog();
     renderDraft();
     loadRasioOnStart();
+
     updateLogCountUI();
     applySendAvailability();
     updateNetAccurate();
-
-    // coba tampilkan versi dari cache kalau ada
-    getCachedTable();
 
     window.addEventListener("online",  () => updateNetAccurate());
     window.addEventListener("offline", () => updateNetAccurate());
@@ -1412,4 +1307,3 @@
   </script>
 </body>
 </html>
-
