@@ -1,5 +1,5 @@
 /* BrixCal Service Worker - Offline First */
-const CACHE_VERSION = "brixcal-v1"; // kalau update besar, ganti jadi v2, v3, dst
+const CACHE_VERSION = "brixcal-v4.2"; // kalau update besar, ganti jadi v2, v3, dst
 
 // File inti yang WAJIB ada untuk offline
 const CORE_ASSETS = [
